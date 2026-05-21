@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Mario Game</title>
+<style>
+    body {
+        margin: 0;
+        background-color: #5c94fc;
+        overflow: hidden;
+    }
+    canvas {
+        display: block;
+        margin: auto;
+        background: linear-gradient(#5c94fc, #8be4fd);
+    }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+
+<script>
+// ===== Game Setup =====
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// Player properties
+const player = {
+    x: 50,
+    y: 300,
+    width: 40,
+    height: 40,
+    color: "red",
+    dy: 0,
+    gravity: 0.6,
+    jumpPower: -12,
+    grounded: false
+};
+
+// Ground
+const groundHeight = 50;
+
+// Obstacles
+let obstacles = [
+    { x: 400, y: 300, width: 40, height: 50, color: "green" },
+    { x: 650, y: 250, width: 40, height: 100, color: "green" }
+];
+
+// Controls
+let keys = {};
+
+// ===== Event Listeners =====
+document.addEventListener("keydown", e => keys[e.code] = true);
+document.addEventListener("keyup", e => keys[e.code] = false);
+
+// ===== Game Loop =====
+function update() {
+    // Horizontal movement
+    if (keys["ArrowRight"]) player.x += 4;
+    if (keys["ArrowLeft"]) player.x -= 4;
+
+    // Jump
+    if (keys["Space"] && player.grounded) {
+        player.dy = player.jumpPower;
+        player.grounded = false;
+    }
+
+    // Apply gravity
+    player.dy += player.gravity;
+    player.y += player.dy;
+
+    // Ground collision
+    if (player.y + player.height >= canvas.height - groundHeight) {
+        player.y = canvas.height - groundHeight - player.height;
+        player.dy = 0;
+        player.grounded = true;
+    }
+
+    // Obstacle collision
+    obstacles.forEach(obs => {
+        if (player.x < obs.x + obs.width &&
+            player.x + player.width > obs.x &&
+            player.y < obs.y + obs.height &&
+            player.y + player.height > obs.y) {
+            // Simple collision response: push player back
+            if (player.x < obs.x) player.x = obs.x - player.width;
+            else player.x = obs.x + obs.width;
+        }
+    });
+
+    draw();
+    requestAnimationFrame(update);
+}
+
+// ===== Draw Function =====
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw ground
+    ctx.fillStyle = "#654321";
+    ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+
+    // Draw player
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // Draw obstacles
+    obstacles.forEach(obs => {
+        ctx.fillStyle = obs.color;
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+    });
+}
+
+// Start game
+update();
+</script>
+</body>
+</html>
